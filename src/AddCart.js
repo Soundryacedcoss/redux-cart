@@ -1,52 +1,61 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchProducts } from "./Slice/ProductSlice";
-import { UpdateProducts } from "./Slice/UpdateSlice";
+import { UpdateProducts } from "./Slice/CartSlice";
+import { fetchProducts } from "./Slice/CartSlice";
 import { AddProduct } from "./Slice/CartSlice";
-import Deletes from "./Slice/DeleteSlice";
+import { Deletes } from "./Slice/CartSlice";
 export const AddCart = () => {
+  // state for input values
   const [id, setId] = useState("");
-  const [quantity, setQuantity] = useState("");
   const disptch = useDispatch();
-  const output = useSelector((state) => state.product.data.carts);
-  const Add=useSelector((state)=>state.cart)
-  const deleteProduct = useSelector((state)=>state.delete)
-  const Update=useSelector((state)=>state.update.data)
-console.log("addProduct",Add);
-  console.log(deleteProduct);
+  const [quantity, setQuantity] = useState("");
+  const output = useSelector((state) => state.cart.display.carts);
+  const deleteProduct = useSelector((state) => state.cart.deletemsg);
+  const Update = useSelector((state) => state.cart);
+  const [displaySuccess, setDisplaySuccess] = useState("none");
+  const [displayError, setDisplayError] = useState("none");
   useEffect(() => {
     disptch(fetchProducts());
+    disptch(UpdateProducts());
+    disptch(Deletes());
   }, []);
-  const QuantityHandler=(e)=>{
-    setQuantity(e.target.value)
-  }
-  const IdHandler=(e)=>{
-    setId(e.target.value)
-  }
-  console.log(quantity);
-  const AddButtonHandler = () => {
-    disptch(AddProduct(id,quantity))
-  
-    // disptch(
-    //   AddProduct(
-    //     {
-    //       id:id,
-    //       quantity:quantity
-    //     }
-    //   )
-    // );
-    console.log(disptch(AddProduct()));
+  // taling value from input
+  const QuantityHandler = (e) => {
+    setQuantity(e.target.value);
   };
-  const UpdateButtonHandler=()=>{
-  disptch(UpdateProducts());
-  console.log("updateClick",Update);
-  // console.log(disptch(UpdateProducts()));
-  }
-  const DeleteHandler=()=>{
-  disptch(Deletes());
-  }
-
+  const IdHandler = (e) => {
+    setId(e.target.value);
+  };
+// adding product to cart
+  const AddButtonHandler = () => {
+    if (quantity === "" && id === "") {
+      setDisplayError("block");
+    } else if (quantity === "") {
+      setDisplayError("block");
+    } else if (id === "") {
+      setDisplayError("block");
+    } else {
+      setDisplaySuccess("block");
+      setDisplayError("none");
+      disptch(AddProduct(id, quantity));
+    }
+  };
+  // Updation product
+  const UpdateButtonHandler = () => {
+    disptch(UpdateProducts());
+    alert(Update.msg);
+  };
+  // deleting the cart
+  const DeleteHandler = () => {
+    disptch(Deletes());
+    alert(deleteProduct);
+  };
+  // closing msg
+  const closemsgHandler = (e) => {
+    setDisplaySuccess("none");
+    setDisplayError("none");
+  };
   return (
     <div className="FormDiv">
       <h2>Add to cart</h2>
@@ -61,26 +70,60 @@ console.log("addProduct",Add);
       <button className="CartButton" onClick={AddButtonHandler}>
         Add to cart
       </button>
+      <div className="alert" style={{ display: displayError }}>
+        <span class="closebtn" onClick={closemsgHandler}>
+          &times;
+        </span>
+        <strong>Error !</strong> Error in adding to cart
+      </div>
+      <div className="alert success" style={{ display: displaySuccess }}>
+        <span class="closebtn" onClick={closemsgHandler}>
+          &times;
+        </span>
+        <strong>Success!</strong> item added to cart.
+      </div>
       <hr />
       <hr />
-      <button onClick={DeleteHandler}>Delete</button>
+      <button onClick={DeleteHandler} className="CartButton">
+        Delete
+      </button>
       <h2>Shopping Cart</h2>
       <table>
-        <tr>
-          <th>Id</th> <th>Title</th> <th>Quantity</th> <th>Action</th>{" "}
-          <th>Price</th>
-        </tr>
-        {output
-          ? output[0].products.map((item) => (
-              <tr>
-                <td>{item.id}</td>{" "}
-                <td>{item.title}</td> {" "}
-                <td> <input type="number" placeholder={item.quantity} value={item.quantity}/></td>{" "}
-                <td><button className="UpdateButton" onClick={UpdateButtonHandler}>Update</button></td>{" "}
-                <td>{item.price}</td>{" "}
-              </tr>
-            ))
-          : null}
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Quantity</th>
+            <th>Action</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {output
+            ? output[0].products.map((item) => (
+                <tr key={Math.random()}>
+                  <td>{item.id}</td>
+                  <td>{item.title}</td>
+                  <td>
+                    <input
+                      className="QuantityDiv"
+                      type="number"
+                      placeholder={item.quantity}
+                    />
+                  </td>
+                  <td>
+                    <button
+                      className="UpdateButton"
+                      onClick={UpdateButtonHandler}
+                    >
+                      Update
+                    </button>
+                  </td>
+                  <td>{item.price}</td>
+                </tr>
+              ))
+            : null}
+        </tbody>
       </table>
     </div>
   );
